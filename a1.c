@@ -1,5 +1,11 @@
+/*
+Team members: 
+Birudugadda Srivibhav - 22110050
+Bhoumik Patidar - 22110049
+Praveen Rathod - 22110206
+*/
 #include "test.h"
-
+#include <stdio.h>
 #include <string.h> // for testing generate_splits()
 
 /*
@@ -10,21 +16,22 @@
  * Selections should be generated in lexicographic order.
  * a[0..k-1] is the smallest selection and a[n-k..n-1] is the largest.
  */
-void generate_selections(int a[], int n, int k, int b[], void *data, void (*process_selection)(int *b, int k, void *data))
-{
-    b[0] = 2; b[1] = 1;
-    process_selection(b, 2, data);
-    b[0] = 2; b[1] = 6;
-    process_selection(b, 2, data);
-    b[0] = 2; b[1] = 5;
-    process_selection(b, 2, data);
-    b[0] = 1; b[1] = 6;
-    process_selection(b, 2, data);
-    b[0] = 1; b[1] = 5;
-    process_selection(b, 2, data);
-    b[0] = 6; b[1] = 5;
-    process_selection(b, 2, data);
+void gsRecurrsion(int a[], int n, int k, int b[], int b_index, int a_index, void *data, void (*process_selection)(int *b, int k, void *data)) {
+    if (k == 0) {
+        process_selection(b, b_index, data);
+        return;
+    }
+
+    for (int i = a_index; i < n; i++) {
+        b[b_index] = a[i];
+        gsRecurrsion(a, n, k - 1, b, b_index + 1, i + 1, data, process_selection);
+    }
 }
+
+void generate_selections(int a[], int n, int k, int b[], void *data, void (*process_selection)(int *b, int k, void *data)) {
+    gsRecurrsion(a, n, k, b, 0, 0, data, process_selection);
+}
+
 
 /*
  * See Exercise 2 (a), page 94 in Jeff Erickson's textbook.
@@ -34,26 +41,80 @@ void generate_selections(int a[], int n, int k, int b[], void *data, void (*proc
  * The dictionary parameter is an array of words, sorted in dictionary order.
  * nwords is the number of words in this dictionary.
  */
-void generate_splits(const char *source, const char *dictionary[], int nwords, char buf[], void *data, void (*process_split)(char buf[], void *data))
-{
-    strcpy(buf, "art is toil");
-    process_split(buf, data);
-    strcpy(buf, "artist oil");
-    process_split(buf, data);
+int In_dict(const char *word, const char *dict[], int nwords) {
+    for (int i = 0; i < nwords; i++) {
+        if (strcmp(word, dict[i]) == 0) {
+            return 1;
+        }
+    }
+    return 0; 
+}
+
+void generate_splits_recursive(const char *source, const char *dict[], int nwords, char buf[], int b_ind, int a_ind, void *data, void (*process_split)(char buf[], void *data)) {
+    int n = strlen(source);
+
+    if (a_ind == n) {
+        buf[b_ind] = '\0';
+        process_split(buf, data); 
+        return;
+    }
+
+    for (int i = a_ind; i < n; i++) {
+        char word[100]; 
+        strncpy(word, source + a_ind, i - a_ind + 1);
+        word[i - a_ind + 1] = '\0';
+
+        if (In_dict(word, dict, nwords)) {
+            if (b_ind > 0) {
+                buf[b_ind] = ' ';
+                b_ind++;
+            }
+            
+            strcpy(buf + b_ind, word);
+
+            generate_splits_recursive(source, dict, nwords, buf, b_ind + strlen(word), i + 1, data, process_split);
+
+            buf[b_ind] = '\0';
+        }
+    }
+}
+
+void generate_splits(const char *source, const char *dict[], int nwords, char buf[], void *data, void (*process_split)(char buf[], void *data)) {
+    generate_splits_recursive(source, dict, nwords, buf, 0, 0, data, process_split);
 }
 
 /*
  * Transform a[] so that it becomes the previous permutation of the elements in it.
  * If a[] is the first permutation, leave it unchanged.
  */
-void previous_permutation(int a[], int n)
-{
-    a[0] = 1;
-    a[1] = 5;
-    a[2] = 4;
-    a[3] = 6;
-    a[4] = 3;
-    a[5] = 2;
+void previous_permutation(int a[],int n){
+    for (int i=n-2;i>=0;i--){
+        if (a[i]>a[i+1]){
+            for (int l=n-1;l>i;l--){
+                if (a[l]<a[i]){
+                    int c=a[i];
+                    a[i]=a[l];
+                    a[l]=c;
+                    break;
+                }  
+            }
+            
+            int mid =(i+n)/2;
+            for (int x=i+1,z=0;x<=mid;x++,z++){
+                int d=a[x];
+                a[x]=a[n-1-z];
+                a[n-1-z]=d;
+            }
+            break;
+        }  
+        
+    }
+    /*
+    for (int y=0;y<n;y++){
+        printf("%d",a[y]);
+    }*/
+
+
 }
 
 /* Write your tests here. Use the previous assignment for reference. */
