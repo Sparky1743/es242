@@ -115,18 +115,6 @@ move_t best_move(board_t board, player_t player)
         }
     }
 
-    player_t opponent = other_player(player);
-    for (int i = 0; i < 15; ++i) {
-        if (board[i] == NO) {
-            board[i] = opponent;
-            if (has_won(board, opponent)) {
-                board[i] = NO;
-                return (move_t){i, 1};
-            }
-            board[i] = NO;
-        }
-    }
-
     //Predictions
     for (int i = 0; i < 15; ++i) {
         if (board[i] == NO) {
