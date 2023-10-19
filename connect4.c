@@ -121,11 +121,15 @@ typedef struct {
     int score;
 } move_t;
 
-move_t best_move(board_t board, player_t player)
-{
+move_t best_move(board_t board, player_t player, int depth) {
     move_t response;
-    move_t candidate;
+    move_t candidate = {-1, -1};
     int no_candidate = 1;
+
+    if (depth == 0 || is_full(board)) {
+        candidate.score = 0;
+        return candidate;
+    }
 
     for (int col = 0; col < 5; ++col) {
         if (!column_full(board, col)) {
@@ -138,19 +142,7 @@ move_t best_move(board_t board, player_t player)
             board[row][col] = EMPTY;
         }
     }
-
-    player_t opponent = other_player(player);
-    for (int col = 0; col < 5; ++col) {
-        if (!column_full(board, col)) {
-            int row = drop_piece(board, col, opponent);
-            if (has_won(board, opponent)) {
-                board[row][col] = EMPTY;
-                return (move_t){col, 1};
-            }
-            board[row][col] = EMPTY;
-        }
-    }
-
+    
     for (int col = 0; col < 5; ++col) {
         if (!column_full(board, col)) {
             int row = drop_piece(board, col, player);
@@ -159,14 +151,15 @@ move_t best_move(board_t board, player_t player)
                 board[row][col] = EMPTY;
                 return (move_t){col, 0};
             }
-            response = best_move(board, other_player(player));
+            response = best_move(board, other_player(player), depth - 1);
             board[row][col] = EMPTY;
+
             if (response.score == -1) {
                 return (move_t){col, 1};
             } else if (response.score == 0) {
                 candidate = (move_t){col, 0};
                 no_candidate = 0;
-            } else {
+            } else{
                 if (no_candidate) {
                     candidate = (move_t){col, -1};
                     no_candidate = 0;
@@ -177,6 +170,7 @@ move_t best_move(board_t board, player_t player)
 
     return candidate;
 }
+
 
 void print_board(board_t board)
 {
@@ -238,7 +232,7 @@ int main()
                 continue;
             }
         } else {
-            response = best_move(board, current);
+            response = best_move(board, current, 11);
             col = response.col;
 
             if (col >= 0 && col < 5 && !column_full(board, col)) {
